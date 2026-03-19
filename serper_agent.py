@@ -12,8 +12,6 @@ from smolagents import HfApiModel, CodeAgent, tool
 load_dotenv()
 
 
-# ===== ИНСТРУМЕНТЫ (Оставляем твою логику, но чуть причешем) =====
-
 @tool
 def serper_search(query: str) -> str:
     """
@@ -78,50 +76,29 @@ def read_webpage(url: str) -> str:
     except Exception as e:
         return f"Error reading page: {str(e)}"
 
-
-# ===== НАСТРОЙКА АГЕНТА =====
-
-print("🤖 Настройка AI-агента с Serper.dev...\n")
-
 # Проверяем наличие ключей
 hf_token = os.getenv("HF_TOKEN")
 serper_key = os.getenv("SERPER_API_KEY")
 
 if not hf_token:
-    print("❌ ОШИБКА: HF_TOKEN не найден в .env файле!")
-    print("Получите токен: https://huggingface.co/settings/tokens")
+    print("ОШИБКА: HF_TOKEN не найден")
     exit(1)
 
 if not serper_key:
-    print("❌ ОШИБКА: SERPER_API_KEY не найден в .env файле!")
-    print("\nПолучите бесплатный ключ:")
-    print("1. Зайдите на https://serper.dev/")
-    print("2. Нажмите 'Sign Up'")
-    print("3. Зарегистрируйтесь через Google")
-    print("4. Скопируйте API ключ из Dashboard")
-    print("5. Добавьте в .env: SERPER_API_KEY=ваш_ключ")
+    print("ОШИБКА: SERPER_API_KEY не найден")
     exit(1)
 
-print("✅ Все ключи найдены!")
-
-# Создаём модель
 model = HfApiModel(
     model_id="meta-llama/Llama-4-Scout-17B-16E-Instruct",
     token=hf_token
 )
 
-# Инструменты
 tools = [
-    serper_search,   # Основной поиск Google
+    serper_search,
     serper_news,     # Поиск новостей
     read_webpage     # Чтение страниц
 ]
 
-print("✅ Serper Search подключен")
-print("✅ Serper News подключен")
-print("✅ Web Reader подключен\n")
-
-# Системный промпт
 system_prompt = """
 # Operating Protocol:
 1. **Analyze:** Before using tools, state your search strategy (what keywords and which tool).
@@ -147,7 +124,6 @@ system_prompt = """
 - No fluff. Be objective, concise, and professional.
 """
 
-# Создаём агента
 agent = CodeAgent(
     tools=tools,
     model=model,
@@ -157,13 +133,6 @@ agent = CodeAgent(
 
 #agent.system_prompt = system_prompt
 agent.default_summarizer_template = system_prompt
-
-
-# ===== ПРИМЕРЫ ЗАПРОСОВ =====
-
-print("="*60)
-print("AI-АГЕНТ С GOOGLE SEARCH (SERPER.DEV) ГОТОВ!")
-print("="*60 + "\n")
 
 test_queries = [
     # Факты
@@ -185,10 +154,6 @@ test_queries = [
     "Who won the Nobel Prize in Physics in 2024 and what was it for?",
 ]
 
-print("📝 Примеры вопросов:")
-for i, q in enumerate(test_queries, 1):
-    print(f"{i}. {q}")
-
 print("\n" + "="*60)
 
 # Выбираем вопрос (измените индекс для других вопросов)
@@ -209,10 +174,3 @@ except Exception as e:
     print(f"\n❌ Ошибка: {e}")
     import traceback
     traceback.print_exc()
-
-print("\n" + "="*60)
-print("💡 СОВЕТЫ:")
-print("- Измените query на другой вопрос из списка")
-print("- Или напишите свой вопрос!")
-print("- Проверьте оставшиеся запросы: https://serper.dev/dashboard")
-print("="*60)
